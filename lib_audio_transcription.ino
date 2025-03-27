@@ -1,11 +1,12 @@
 #include <WiFiClientSecure.h>  
+#include "Credentials.h"
 #ifndef DEBUG                   // user can define favorite behaviour ('true' displays addition info)
 #  define DEBUG true            // <- define your preference here  
 #  define DebugPrint(x);        if(DEBUG){Serial.print(x);}   /* do not touch */
 #  define DebugPrintln(x);      if(DEBUG){Serial.println(x);} /* do not touch */ 
 #endif
 
-const char* deepgramApiKey =    "4e61fae2d09c4ac03b8c1008aa0a62f8a6384e20";                     // ## INSERT your Deepgram credentials !
+const char* deepgramApiKey =    DEEPGRAM_KEY;                     // ## INSERT your Deepgram credentials !
 
 #define STT_LANGUAGE      "en-US"  // forcing single language: e.g. "de" (German), reason: improving recognition quality
                                 // keep EMPTY ("") if you want Deepgram to detect & understand 'your' language automatically, 

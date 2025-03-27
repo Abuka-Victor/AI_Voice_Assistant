@@ -2,6 +2,7 @@
 
 #include <WiFi.h>  // only included here
 #include <SD.h>    // also needed in other tabs (.ino)
+#include "Credentials.h"
 
 #include <Audio.h>  // needed for PLAYING Audio (via I2S Amplifier, e.g. MAX98357) with ..
 #include <Arduino.h>
@@ -15,10 +16,10 @@ String repeat;
 SimpleTimer Timer;
 float batteryVoltage;
 
-const char* ssid = "NITDA-ICT-HUB";                                                       // ## INSERT your wlan ssid
-const char* password = "6666.2524#";                                                // ## INSERT your password
+const char* ssid = SSID;                                                       // ## INSERT your wlan ssid
+const char* password = PASSWORD;                                                // ## INSERT your password
 const char* OPENAI_KEY = "***************************************";  // ## optionally (needed for Open AI voices): INSERT your OpenAI key
-const char* gemini_KEY = "AIzaSyAioyaH2qul23iCIOrdyW8un_Cc-9MR_Ek";                   //gemini api
+const char* gemini_KEY = GEMINI_KEY;                   //gemini api
 #define TTS_MODEL 0                                                               // 1 = OpenAI TTS; 0 = Google TTS
 
 String OpenAI_Model = "gpt-3.5-turbo-instruct";  // Model
