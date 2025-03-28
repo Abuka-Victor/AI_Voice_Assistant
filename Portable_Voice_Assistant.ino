@@ -1,7 +1,8 @@
 #define VERSION "\n=== KALO ESP32 Voice Assistant (last update: July 22, 2024) ======================"
 
 #include <WiFi.h>  // only included here
-#include <SD.h>    // also needed in other tabs (.ino)
+// #include <SD.h>    // also needed in other tabs (.ino)
+#include <SPIFFS.h>    // also needed in other tabs (.ino)
 #include "Credentials.h"
 
 #include <Audio.h>  // needed for PLAYING Audio (via I2S Amplifier, e.g. MAX98357) with ..
@@ -14,7 +15,6 @@ String text;
 String filteredAnswer = "";
 String repeat;
 SimpleTimer Timer;
-float batteryVoltage;
 
 const char* ssid = SSID;                                                       // ## INSERT your wlan ssid
 const char* password = PASSWORD;                                                // ## INSERT your password
@@ -26,7 +26,7 @@ String OpenAI_Model = "gpt-3.5-turbo-instruct";  // Model
 String OpenAI_Temperature = "0.20";              // temperature
 String OpenAI_Max_Tokens = "100";                //Max Tokens
 
-#define AUDIO_FILE "/Audio.wav"  // mandatory, filename for the AUDIO recording
+#define AUDIO_FILE "/recording.wav"  // mandatory, filename for the AUDIO recording
 
 #define TTS_GOOGLE_LANGUAGE "en-US"  // needed for Google TTS voices only (not needed for multilingual OpenAI voices :) \
 
@@ -38,9 +38,9 @@ String OpenAI_Max_Tokens = "100";                //Max Tokens
 #define pin_LED_GREEN 12
 #define pin_LED_BLUE 13
 
-#define pin_I2S_DOUT 34  // 3 pins for I2S Audio Output (Schreibfaul1 audio.h Library)
+#define pin_I2S_DOUT 21  // 3 pins for I2S Audio Output (Schreibfaul1 audio.h Library)
 #define pin_I2S_LRC 26
-#define pin_I2S_BCLK 35
+#define pin_I2S_BCLK 27
 
 Audio audio_play;
 bool I2S_Record_Init();
@@ -49,7 +49,6 @@ bool Record_Available(String filename, float* audiolength_sec);
 
 String SpeechToText_Deepgram(String filename);
 void Deepgram_KeepAlive();
-const int batteryPin = 34;             // Pin 34 for battery voltage reading
 const float R1 = 100000.0;             // 100k ohm resistor
 const float R2 = 10000.0;              // 10k ohm resistor
 const float adcMax = 4095.0;           // Max value for ADC on ESP32
@@ -61,7 +60,6 @@ const float calibrationFactor = 1.48;  // Calibration factor for ADC reading
 void setup() {
   Serial.begin(115200);
   Serial.setTimeout(100);  // 10 times faster reaction after CR entered (default is 1000ms)
-  pinMode(batteryPin, INPUT);
   analogReadResolution(12);  // 12-bit ADC resolution
 
   pinMode(pin_LED_RED, OUTPUT);
@@ -92,10 +90,15 @@ void setup() {
   Serial.println(". Done, device connected.");
   led_RGB(0, 50, 0);  // GREEN
 
-  if (!SD.begin()) {
-    Serial.println("ERROR - SD Card initialization failed!");
-    return;
-  }
+  // if (!SD.begin()) {
+  //   Serial.println("ERROR - SD Card initialization failed!");
+  //   return;
+  // }
+
+    if(!SPIFFS.begin(true)){
+      Serial.println("SPIFFS Mount Failed");
+      return;
+   }
 
   I2S_Record_Init();
 
@@ -216,13 +219,9 @@ here:
     analogWrite(pin_LED_BLUE, 0);
   }
 
-  String batt = "battery low. please charge";
   if (Timer.isReady()) {
-    Serial.print("Battery Voltage: ");
-    Serial.println(batteryVoltage);
-    if (batteryVoltage < 3.4) {
-      speakTextInChunks(batt.c_str(), 93);  // ( Uncomment this to use Google TTS )
-    }
+    
+      // speakTextInChunks(batt.c_str(), 93);  // ( Uncomment this to use Google TTS )
 
     Timer.reset();
   }

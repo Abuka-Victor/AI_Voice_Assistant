@@ -24,7 +24,7 @@
                                        // hint: best quality with 16000 or 24000 (above 24000: random dropouts and distortions)
                                        // recommendation in case the STT service produces lot of wrong words: try 16000 
 
-#define BITS_PER_SAMPLE         8      // 16 bit and 8bit supported (24 or 32 bits not supported)
+#define BITS_PER_SAMPLE         16      // 16 bit and 8bit supported (24 or 32 bits not supported)
                                        // hint: 8bit is less critical for STT services than a low 8kHz sample rate
                                        // for fastest STT: combine 8kHz and 8 bit. 
 
@@ -32,6 +32,7 @@
                                        // multiplier, values: 1-64 (32 seems best value for INMP441)
                                        // 64: high background noise but working well for STT on quiet human conversations
 
+#define FLASH_RECORD_SIZE (1 * SAMPLE_RATE * BITS_PER_SAMPLE / 8 * 20)
 
 i2s_std_config_t  std_cfg = 
 { .clk_cfg  =   // instead of macro 'I2S_STD_CLK_DEFAULT_CONFIG(SAMPLE_RATE),'
@@ -85,6 +86,53 @@ struct WAV_HEADER
   long  dlength = 0;                                        /* data length in bytes (filelength - 44)   ==> Calc at end ! */
 } myWAV_Header;
 
+void wavHeader(byte* header, int wavSize){
+  header[0] = 'R';
+  header[1] = 'I';
+  header[2] = 'F';
+  header[3] = 'F';
+  unsigned int fileSize = wavSize + 44 - 8;
+  header[4] = (byte)(fileSize & 0xFF);
+  header[5] = (byte)((fileSize >> 8) & 0xFF);
+  header[6] = (byte)((fileSize >> 16) & 0xFF);
+  header[7] = (byte)((fileSize >> 24) & 0xFF);
+  header[8] = 'W';
+  header[9] = 'A';
+  header[10] = 'V';
+  header[11] = 'E';
+  header[12] = 'f';
+  header[13] = 'm';
+  header[14] = 't';
+  header[15] = ' ';
+  header[16] = 0x10;
+  header[17] = 0x00;
+  header[18] = 0x00;
+  header[19] = 0x00;
+  header[20] = 0x01;
+  header[21] = 0x00;
+  header[22] = 0x01;
+  header[23] = 0x00;
+  header[24] = 0x80;
+  header[25] = 0x3E;
+  header[26] = 0x00;
+  header[27] = 0x00;
+  header[28] = 0x00;
+  header[29] = 0x7D;
+  header[30] = 0x00;
+  header[31] = 0x00;
+  header[32] = 0x02;
+  header[33] = 0x00;
+  header[34] = 0x10;
+  header[35] = 0x00;
+  header[36] = 'd';
+  header[37] = 'a';
+  header[38] = 't';
+  header[39] = 'a';
+  header[40] = (byte)(wavSize & 0xFF);
+  header[41] = (byte)((wavSize >> 8) & 0xFF);
+  header[42] = (byte)((wavSize >> 16) & 0xFF);
+  header[43] = (byte)((wavSize >> 24) & 0xFF); 
+}
 
 bool flg_is_recording = false;         // only internally used
 
@@ -122,14 +170,17 @@ bool Record_Start( String audio_filename )
   { 
     flg_is_recording = true;
     
-    if (SD.exists(audio_filename)) 
+    if (SPIFFS.exists(audio_filename)) 
     {  
-      SD.remove(audio_filename); DebugPrintln("\n> Existing AUDIO file removed.");
+      SPIFFS.remove(audio_filename); DebugPrintln("\n> Existing AUDIO file removed.");
     }  else {DebugPrintln("\n> No AUDIO file found");}
     
     // Kalo WAV header
-    File audio_file = SD.open(audio_filename, FILE_WRITE);
-    audio_file.write((uint8_t *) &myWAV_Header, 44);
+    File audio_file = SPIFFS.open(audio_filename, FILE_WRITE);
+    byte header[44];
+    wavHeader(header, FLASH_RECORD_SIZE);
+    audio_file.write(header, 44);
+    // audio_file.write((uint8_t *) &myWAV_Header, 44);
     audio_file.close(); 
     
     DebugPrintln("> WAV Header generated, Audio Recording started ... ");
@@ -159,7 +210,7 @@ bool Record_Start( String audio_filename )
     }  
     
     // Save audio data to SD card (appending chunk array to file end)
-    File audio_file = SD.open(audio_filename, FILE_APPEND);
+    File audio_file = SPIFFS.open(audio_filename, FILE_APPEND);
     if (audio_file)
     {  
        if (BITS_PER_SAMPLE == 16) // 16 bit default: appending original I2S chunks (e.g. 1014 values, 2048 bytes)
@@ -196,10 +247,13 @@ bool Record_Available( String audio_filename, float* audiolength_sec )
   if (flg_is_recording) 
   { 
     
-    File audio_file = SD.open(audio_filename, "r+");
+    File audio_file = SPIFFS.open(audio_filename, "r+");
     long filesize = audio_file.size();
     audio_file.seek(0); myWAV_Header.flength = filesize;  myWAV_Header.dlength = (filesize-8);
-    audio_file.write((uint8_t *) &myWAV_Header, 44);
+    byte header[44];
+    wavHeader(header, FLASH_RECORD_SIZE);
+    // audio_file.write(header, 44);
+    // audio_file.write((uint8_t *) &myWAV_Header, 44);
     audio_file.close(); 
     
     flg_is_recording = false;  // important: this is done only here

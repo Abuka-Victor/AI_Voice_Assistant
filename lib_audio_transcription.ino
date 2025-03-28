@@ -1,5 +1,7 @@
 #include <WiFiClientSecure.h>  
 #include "Credentials.h"
+// #include <SPIFFS.h>
+
 #ifndef DEBUG                   // user can define favorite behaviour ('true' displays addition info)
 #  define DEBUG true            // <- define your preference here  
 #  define DebugPrint(x);        if(DEBUG){Serial.print(x);}   /* do not touch */
@@ -48,7 +50,7 @@ String SpeechToText_Deepgram( String audio_filename )
         
   // ---------- Check if AUDIO file exists, check file size 
   
-  File audioFile = SD.open( audio_filename );    
+  File audioFile = SPIFFS.open( audio_filename );    
   if (!audioFile) {
     Serial.println("ERROR - Failed to open file for reading");
     return ("");
@@ -79,7 +81,7 @@ String SpeechToText_Deepgram( String audio_filename )
   DebugPrintln("> POST Request to Deepgram Server started, sending WAV data now ..." );
   uint32_t t_headersent = millis();     
   
-  File file = SD.open( audio_filename, FILE_READ );
+  File file = SPIFFS.open( audio_filename, FILE_READ );
   const size_t bufferSize = 2048;      // best values seem anywhere between 1024 and 2048; 
   uint8_t buffer[bufferSize];
   size_t bytesRead;
