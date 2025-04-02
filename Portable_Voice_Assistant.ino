@@ -43,6 +43,8 @@ String OpenAI_Max_Tokens = "100";                //Max Tokens
 #define pin_I2S_BCLK 27
 
 Audio audio_play;
+// void SPIFFSInit();
+// void i2sInit();
 bool I2S_Record_Init();
 bool Record_Start(String filename);
 bool Record_Available(String filename, float* audiolength_sec);
@@ -59,6 +61,7 @@ const float calibrationFactor = 1.48;  // Calibration factor for ADC reading
 // ------------------------------------------------------------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200);
+  Serial.println("> Start Setup");
   Serial.setTimeout(100);  // 10 times faster reaction after CR entered (default is 1000ms)
   analogReadResolution(12);  // 12-bit ADC resolution
 
@@ -95,16 +98,18 @@ void setup() {
   //   return;
   // }
 
-    if(!SPIFFS.begin(true)){
+  if(!SPIFFS.begin(true)){
       Serial.println("SPIFFS Mount Failed");
       return;
    }
+  // SPIFFSInit();
+  // i2sInit();
 
   I2S_Record_Init();
 
   audio_play.setPinout(pin_I2S_BCLK, pin_I2S_LRC, pin_I2S_DOUT);
 
-  audio_play.setVolume(21);  //21
+  audio_play.setVolume(40);  //21
   Serial.println("> HOLD button for recording AUDIO .. RELEASE button for REPLAY & Deepgram transcription");
 }
 
