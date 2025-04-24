@@ -13,9 +13,9 @@
 
 // --- PIN assignments ---------
 
-#define I2S_WS      25          // add-on: L/R pin INMP441 on Vcc is RIGHT channel, connected to GND is LEFT channel
-#define I2S_SD      33          
-#define I2S_SCK     32     
+#define I2S_WS      20          // add-on: L/R pin INMP441 on Vcc is RIGHT channel, connected to GND is LEFT channel
+#define I2S_SD      3          
+#define I2S_SCK     19     
 
 
 // --- define your settings ----
@@ -52,7 +52,7 @@ i2s_std_config_t  std_cfg =
     .ws_width =  I2S_DATA_BIT_WIDTH_16BIT,           
     .ws_pol = false, 
     .bit_shift = true,   // using [.bit_shift = true] similar PHILIPS or PCM format (NOT 'false' as in MSB macro) ! ..
-    .msb_right = false,  // .. or [.msb_right = true] to avoid overdriven and distorted signals on I2S microphones
+    // .msb_right = false,  // .. or [.msb_right = true] to avoid overdriven and distorted signals on I2S microphones
   },
   .gpio_cfg =   
   { .mclk = I2S_GPIO_UNUSED,

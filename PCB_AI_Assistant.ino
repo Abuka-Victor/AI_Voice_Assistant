@@ -30,17 +30,17 @@ String OpenAI_Max_Tokens = "100";                //Max Tokens
 
 #define TTS_GOOGLE_LANGUAGE "en-US"  // needed for Google TTS voices only (not needed for multilingual OpenAI voices :) \
 
-#define pin_RECORD_BTN 16
+#define pin_RECORD_BTN 41
 #define pin_VOL_POTI 15
-#define pin_repeat 22
+#define pin_repeat 42
 
 #define pin_LED_RED 17
 #define pin_LED_GREEN 12
 #define pin_LED_BLUE 13
 
-#define pin_I2S_DOUT 21  // 3 pins for I2S Audio Output (Schreibfaul1 audio.h Library)
-#define pin_I2S_LRC 26
-#define pin_I2S_BCLK 27
+#define pin_I2S_DOUT 18  // 3 pins for I2S Audio Output (Schreibfaul1 audio.h Library)
+#define pin_I2S_LRC 5
+#define pin_I2S_BCLK 17
 
 Audio audio_play;
 // void SPIFFSInit();
